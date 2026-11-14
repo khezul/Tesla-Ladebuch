@@ -10,9 +10,9 @@
 <meta name="theme-color" content="#0a0a0a">
 <title>Ladebuch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap">
 <style>
-/* Layout: wie das Kostenbuch — eine schmale Kartenspalte, zentrierter Kopf, Bilanz ganz oben */
+/* Layout: eine schmale Kartenspalte wie das Kostenbuch; Tabs oben, Schnelleingabe ganz vorn */
 :root {
   --bg: #0a0a0a;
   --panel: #111;
@@ -20,310 +20,356 @@
   --line: #222;
   --fg: #f0f0f0;
   --muted: #666;
-  --faint: #4a4a4a;
+  --faint: #444;
   --red: #E31937;
   --green: #00e676;
   --blue: #64b4ff;
   --amber: #ffb74d;
-  --f-display: "Syne", "Helvetica Neue", system-ui, sans-serif;
-  --f-body: "Syne", "Helvetica Neue", system-ui, sans-serif;
-  --f-mono: "Space Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --sans: "Syne", "Helvetica Neue", system-ui, sans-serif;
+  --display: "Oswald", "Arial Narrow", Impact, sans-serif;
+  --mono: "Space Mono", ui-monospace, "SF Mono", Menlo, monospace;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
 body {
-  margin: 0; padding-top: max(24px, env(safe-area-inset-top, 0px));
-  background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 14px; line-height: 1.5;
+  margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 14px; line-height: 1.5;
+  padding-top: max(20px, env(safe-area-inset-top, 0px));
+  padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
 }
-.wrap { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
-.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
-.label { font-family: var(--f-mono); font-size: 9px; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); }
+.wrap { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.label { font-family: var(--mono); font-size: 9px; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); }
+.g { color: var(--green); } .r { color: var(--red); } .b { color: var(--blue); } .a { color: var(--amber); }
 
 /* Kopf */
-header { text-align: center; margin-bottom: 12px; }
-.logo { font-family: var(--f-mono); font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--red); margin-bottom: 12px; }
-h1 { font-family: var(--f-display); font-weight: 800; font-size: clamp(2rem, 8vw, 3rem); line-height: 1; letter-spacing: -.03em; margin: 0; text-wrap: balance; }
+header { text-align: center; padding-top: 4px; }
+.logo { font-family: var(--mono); font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--red); margin-bottom: 10px; }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(2.2rem, 10vw, 3rem); line-height: 1; letter-spacing: .01em; text-transform: uppercase; margin: 0; }
 h1 span { color: var(--red); }
-.sub { font-family: var(--f-mono); font-size: 11px; color: var(--muted); margin-top: 10px; }
-.status { font-family: var(--f-mono); font-size: 9px; letter-spacing: .15em; text-transform: uppercase; color: var(--faint); margin-top: 8px; }
+
+/* Tabs */
+.tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding: 8px 0; }
+.tabs::-webkit-scrollbar { display: none; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); background: var(--bg); z-index: 10; }
+.tab { flex: 1 0 auto; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--muted); font: 400 11px var(--mono); cursor: pointer; white-space: nowrap; }
+.tab[aria-selected="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); font-weight: 700; }
 
 /* Karten */
-.panel, .hero { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px 16px; }
-h2 { font-family: var(--f-display); font-size: 14px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; }
-h2::before { content: ""; display: block; width: 3px; height: 14px; background: var(--red); border-radius: 2px; }
-.panel-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+h2 { font-size: 14px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; }
+h2::before { content: ""; display: block; width: 3px; height: 14px; background: var(--red); border-radius: 2px; flex: none; }
+.head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
 
-/* Bilanz */
-.bilanz { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
-.kpi { border-radius: 12px; padding: 16px; text-align: center; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.kpi .val { font-family: var(--f-mono); font-weight: 700; font-size: clamp(1.2rem, 5vw, 1.8rem); line-height: 1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.kpi .val small { font-size: .55em; color: var(--muted); font-weight: 400; margin-left: 3px; }
-.kpi .note { font-family: var(--f-mono); font-size: 10px; color: var(--muted); }
-.kpi.save { grid-column: 1 / -1; background: rgba(0,230,118,.08); border: 1px solid rgba(0,230,118,.22); padding: 20px 16px; }
-.kpi.save .val { color: var(--green); font-size: clamp(2rem, 9vw, 2.8rem); }
-.kpi.save .label { color: var(--green); }
-.kpi.cost { background: rgba(227,25,55,.08); border: 1px solid rgba(227,25,55,.2); }
-.kpi.cost .val { color: var(--red); }
-.kpi.kwh { background: rgba(100,180,255,.08); border: 1px solid rgba(100,180,255,.2); }
-.kpi.kwh .val { color: var(--blue); }
-.minis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
-.mini { background: var(--panel-2); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.mini .v { font-family: var(--f-mono); font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.spark { margin-top: 12px; background: var(--panel-2); border-radius: 8px; padding: 10px 12px 8px; }
-.spark-head { display: flex; justify-content: space-between; gap: 8px; }
-.spark svg { display: block; width: 100%; height: 60px; margin-top: 8px; }
+/* Schnelleingabe */
+.quick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.qbtn { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; cursor: pointer; text-align: left; font-family: var(--sans); color: var(--fg); background: var(--panel-2); border: 1px solid var(--line); }
+.qbtn .e { font-size: 20px; line-height: 1; grid-row: 1 / 3; }
+.qbtn b { font-size: 14px; font-weight: 700; line-height: 1.2; }
+.qbtn small { font: 400 10px var(--mono); color: var(--muted); }
+.qbtn.home { border-color: rgba(100,180,255,.3); }
+.qbtn.ext { border-color: rgba(255,183,77,.3); }
+.qbtn.home[aria-pressed="true"] { background: rgba(100,180,255,.1); border-color: var(--blue); }
+.qbtn.ext[aria-pressed="true"] { background: rgba(255,183,77,.1); border-color: var(--amber); }
 
-/* Ladeort-Tabs */
-.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; margin-bottom: 16px; }
-.seg button { padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); font: 400 11px var(--f-mono); cursor: pointer; transition: all .2s; }
-#where-home[aria-pressed="true"] { border-color: var(--blue); color: var(--blue); background: rgba(100,180,255,.08); }
-#where-ext[aria-pressed="true"] { border-color: var(--amber); color: var(--amber); background: rgba(255,183,77,.08); }
-
-/* Formular */
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 .field.wide { grid-column: 1 / -1; }
-.field label { font-family: var(--f-mono); font-size: 9px; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); }
+.field label { font-family: var(--mono); font-size: 9px; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); }
 input, select {
-  width: 100%; font: 400 13px var(--f-mono); color: var(--fg); background: var(--panel-2);
-  border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; min-width: 0; outline: none;
+  width: 100%; font: 400 16px var(--mono); color: var(--fg); background: var(--panel-2);
+  border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; min-width: 0; outline: none; -webkit-appearance: none; appearance: none;
 }
+input[type="date"] { min-height: 44px; }
 input:focus, select:focus { border-color: var(--red); }
-button:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
-.hint { font-family: var(--f-mono); font-size: 10px; line-height: 1.6; color: var(--muted); margin: 12px 0 0; }
+button:focus-visible, summary:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+details.more summary { cursor: pointer; font: 400 10px var(--mono); color: var(--muted); list-style: none; }
+details.more summary::-webkit-details-marker { display: none; }
+details.more summary::before { content: "+ "; }
+details.more[open] summary::before { content: "– "; }
+details.more[open] summary { margin-bottom: 10px; }
+.hint { font-family: var(--mono); font-size: 10px; line-height: 1.6; color: var(--muted); margin: 0; }
+.preview { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; background: var(--panel-2); border-radius: 8px; padding: 10px 12px; }
+.preview div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.preview b { font: 700 13px var(--mono); font-variant-numeric: tabular-nums; }
+.btn { width: 100%; border: 0; border-radius: 10px; padding: 14px; cursor: pointer; background: var(--red); color: #fff; font: 700 14px var(--sans); }
+.btn:disabled { opacity: .35; cursor: not-allowed; }
+.btn.ghost { background: var(--panel-2); border: 1px solid var(--line); color: var(--fg); }
+.btn.green { background: var(--green); color: #04140b; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
-.preview { margin-top: 14px; display: flex; flex-direction: column; gap: 12px; }
-.preview .items { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; background: var(--panel-2); border-radius: 8px; padding: 10px 12px; }
-.preview .items div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.preview .items b { font: 700 13px var(--f-mono); font-variant-numeric: tabular-nums; }
-.preview .items .g { color: var(--green); }
-.btn { width: 100%; border: 0; border-radius: 10px; padding: 14px; cursor: pointer; background: var(--red); color: #fff; font: 700 14px var(--f-body); }
-.btn:disabled { opacity: .4; cursor: not-allowed; }
-.btn.ghost { background: #1a4a7a; border: 1px solid var(--blue); color: var(--blue); padding: 10px; }
+/* Bilanz */
+.period { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.period select { width: auto; font-size: 13px; padding: 7px 30px 7px 12px; background: var(--panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E") no-repeat right 12px center; }
+.hero { border-radius: 14px; padding: 20px 16px; text-align: center; background: rgba(0,230,118,.07); border: 1px solid rgba(0,230,118,.22); display: flex; flex-direction: column; gap: 6px; }
+.hero .val { font: 700 clamp(2.2rem, 11vw, 3.2rem) var(--mono); color: var(--green); line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+.hero .label { color: var(--green); }
+.hero .note { font: 400 10px var(--mono); color: var(--muted); }
+.kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.kpi { border-radius: 12px; padding: 14px 12px; text-align: center; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.kpi .val { font: 700 clamp(1.15rem, 5vw, 1.55rem) var(--mono); line-height: 1; font-variant-numeric: tabular-nums; }
+.kpi .note { font: 400 10px var(--mono); color: var(--muted); }
+.kpi.paid { background: rgba(227,25,55,.08); border: 1px solid rgba(227,25,55,.2); } .kpi.paid .val { color: var(--red); }
+.kpi.kwh { background: rgba(100,180,255,.08); border: 1px solid rgba(100,180,255,.2); } .kpi.kwh .val { color: var(--blue); }
+.minis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mini { background: var(--panel-2); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.mini .v { font: 700 14px var(--mono); font-variant-numeric: tabular-nums; }
+.fun { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.fun div { background: var(--panel-2); border-radius: 8px; padding: 12px 8px; text-align: center; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.fun .e { font-size: 18px; line-height: 1; }
+.fun .v { font: 700 16px var(--mono); font-variant-numeric: tabular-nums; }
+.spark svg { display: block; width: 100%; height: 64px; margin-top: 6px; }
+
+/* Zuhause vs Unterwegs */
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.side { border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 6px; background: var(--panel-2); }
+.side.home { border: 1px solid rgba(100,180,255,.2); } .side.ext { border: 1px solid rgba(255,183,77,.2); }
+.side .t { font-weight: 700; font-size: 13px; }
+.side .v { font: 700 18px var(--mono); font-variant-numeric: tabular-nums; }
+.side.home .v { color: var(--blue); } .side.ext .v { color: var(--amber); }
+.side .d { font: 400 10px var(--mono); color: var(--muted); }
+.bar { height: 8px; border-radius: 4px; background: var(--amber); overflow: hidden; display: flex; }
+.bar i { display: block; height: 100%; background: var(--blue); }
+.verdict { font: 400 11px var(--mono); color: var(--muted); line-height: 1.6; margin: 0; }
+.verdict b { color: var(--fg); }
+
+/* Monate */
+.months { overflow-x: auto; }
+.months svg { display: block; height: 170px; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+.tablewrap { overflow-x: auto; }
+.mtable { width: 100%; border-collapse: collapse; font: 400 11px var(--mono); font-variant-numeric: tabular-nums; }
+.mtable th { text-align: right; font-weight: 400; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 6px 4px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.mtable td { text-align: right; padding: 7px 4px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.mtable th:first-child, .mtable td:first-child { text-align: left; }
+
+/* Highlights */
+.hl { display: flex; flex-direction: column; }
+.hl-item { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: center; padding: 11px 0; border-top: 1px solid var(--line); }
+.hl-item:first-child { border-top: 0; padding-top: 0; }
+.hl-item .e { font-size: 17px; text-align: center; }
+.hl-item .t { font-weight: 700; font-size: 13px; line-height: 1.3; }
+.hl-item .d { font: 400 10px var(--mono); color: var(--muted); }
+.hl-item .v { font: 700 14px var(--mono); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* Liste */
 .list { display: flex; flex-direction: column; gap: 8px; }
-.row { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; }
-.row.home { border-color: rgba(100,180,255,.2); }
-.row.ext { border-color: rgba(255,183,77,.2); }
-.row .date { font-family: var(--f-mono); font-size: 9px; color: var(--muted); grid-column: 1 / -1; margin-bottom: -6px; }
-.row .what { min-width: 0; }
-.row .what .t { font-size: 13px; font-weight: 700; line-height: 1.3; }
-.row .what .d { font-family: var(--f-mono); font-size: 9px; color: var(--muted); margin-top: 2px; overflow-wrap: anywhere; }
-.row .cost { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
-.row .cost .c { font-size: 15px; font-weight: 700; }
-.row.home .cost .c { color: var(--blue); }
-.row.ext .cost .c { color: var(--amber); }
-.row .cost .s { font-size: 10px; color: var(--green); }
-.chip { display: none; }
-.x { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 14px; padding: 4px; }
-.x:hover { color: var(--fg); }
-.confirm { display: flex; gap: 6px; }
-.confirm button { font: 400 10px var(--f-mono); border-radius: 7px; padding: 6px 8px; cursor: pointer; border: 1px solid var(--line); background: var(--panel); color: var(--fg); }
-.confirm .del { background: var(--red); border-color: var(--red); color: #fff; }
+.item { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; }
+.item.home { border-color: rgba(100,180,255,.2); } .item.ext { border-color: rgba(255,183,77,.2); }
+.item .date { font: 400 9px var(--mono); color: var(--muted); grid-column: 1 / -1; }
+.item .what { min-width: 0; }
+.item .t { font-size: 13px; font-weight: 700; line-height: 1.3; }
+.item .d { font: 400 10px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.item .cost { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.item .cost .c { font-size: 15px; font-weight: 700; }
+.item.home .cost .c { color: var(--blue); } .item.ext .cost .c { color: var(--amber); }
+.item .cost .s { font-size: 10px; color: var(--green); }
+.item .acts { grid-column: 1 / -1; display: flex; gap: 6px; justify-content: flex-end; margin-top: 4px; }
+.acts button { font: 400 10px var(--mono); border-radius: 7px; padding: 6px 10px; cursor: pointer; border: 1px solid var(--line); background: var(--panel); color: var(--fg); }
+.acts .del { color: var(--red); }
+.acts .del.sure { background: var(--red); border-color: var(--red); color: #fff; }
 
-.empty { padding: 20px 12px; text-align: center; font-family: var(--f-mono); font-size: 11px; line-height: 1.7; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
-.empty b { color: var(--fg); }
+.empty { padding: 18px 8px; text-align: center; font-family: var(--mono); font-size: 11px; line-height: 1.7; color: var(--muted); }
+.empty b { color: var(--fg); display: block; margin-bottom: 4px; }
 
-details.settings summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
-details.settings summary::-webkit-details-marker { display: none; }
-details.settings summary h2::after { content: "▾"; color: var(--muted); font-size: 11px; margin-left: 2px; }
-details.settings[open] summary { margin-bottom: 16px; }
+/* Wrapped */
+.wrapped-img { width: 100%; max-width: 360px; aspect-ratio: 9 / 16; margin: 0 auto; display: block; border-radius: 14px; border: 1px solid var(--line); background: var(--panel-2); }
+.io { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.io button, .io label { display: flex; align-items: center; justify-content: center; text-align: center; padding: 11px 6px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--fg); font: 400 11px var(--mono); cursor: pointer; }
+.io input { display: none; }
 
-.motivation { text-align: center; padding: 12px 16px; font-family: var(--f-mono); font-size: 11px; color: var(--muted); line-height: 1.8; }
+.motivation { text-align: center; padding: 8px 16px; font-family: var(--mono); font-size: 11px; color: var(--muted); line-height: 1.8; }
 .motivation strong { color: var(--green); font-size: 13px; }
-
-.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); font: 700 12px var(--f-mono); padding: 10px 16px; border-radius: 10px; }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); font: 700 12px var(--mono); padding: 10px 16px; border-radius: 10px; z-index: 20; white-space: nowrap; }
 
 @media (max-width: 420px) {
-  .preview .items { grid-template-columns: 1fr 1fr; }
+  .preview { grid-template-columns: 1fr 1fr; }
+  .io { grid-template-columns: 1fr; }
 }
-@media (prefers-reduced-motion: reduce) { .seg button { transition: none; } }
-</style>
-<style>
-/* Ergänzungen: Schnellwahl, Monate, Spaßzahlen, Export */
-.favs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
-.fav { display: inline-flex; align-items: center; gap: 6px; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--fg); font: 400 11px var(--f-mono); cursor: pointer; }
-.fav b { font-weight: 700; color: var(--muted); }
-.fav.home { border-color: rgba(100,180,255,.35); }
-.fav.ext { border-color: rgba(255,183,77,.35); }
-.fav.on.home { background: rgba(100,180,255,.1); color: var(--blue); }
-.fav.on.ext { background: rgba(255,183,77,.1); color: var(--amber); }
-.fav .rm { color: var(--faint); margin-left: 2px; padding: 0 2px; }
-.fav .rm:hover { color: var(--red); }
-.savefav { display: flex; align-items: center; gap: 8px; margin-top: 10px; font: 400 10px var(--f-mono); color: var(--muted); cursor: pointer; }
-.savefav input { width: auto; }
-.fun { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
-.fun div { background: var(--panel-2); border-radius: 8px; padding: 12px 8px; text-align: center; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.fun .e { font-size: 18px; line-height: 1; }
-.fun .v { font: 700 16px var(--f-mono); font-variant-numeric: tabular-nums; }
-.months { overflow-x: auto; }
-.months svg { display: block; min-width: 100%; height: 170px; }
-.legend { display: flex; gap: 14px; margin-top: 8px; }
-.legend span { display: inline-flex; align-items: center; gap: 6px; }
-.legend i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
-.mtable { width: 100%; border-collapse: collapse; margin-top: 12px; font: 400 11px var(--f-mono); font-variant-numeric: tabular-nums; }
-.mtable th { text-align: right; font-weight: 400; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); padding: 6px 4px; border-bottom: 1px solid var(--line); }
-.mtable td { text-align: right; padding: 7px 4px; border-bottom: 1px solid var(--line); }
-.mtable th:first-child, .mtable td:first-child { text-align: left; }
-.mtable td.g { color: var(--green); }
-.io { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-.io button, .io label { display: flex; align-items: center; justify-content: center; text-align: center; padding: 11px 6px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--fg); font: 400 11px var(--f-mono); cursor: pointer; }
-.io input { display: none; }
-@media (max-width: 420px) { .io { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
-
-
 <div class="wrap">
   <header>
     <div class="logo">⚡ Ladebuch</div>
-    <h1>Strom statt<br><span>Sprit</span></h1>
-    <div class="sub">Was kostet dich der Model Y an der Steckdose wirklich?</div>
+    <h1>Strom statt <span>Sprit</span></h1>
   </header>
 
-  <!-- Bilanz -->
-  <section class="hero" aria-label="Bilanz">
-    <h2>Gesamtbilanz</h2>
-    <div class="bilanz">
-      <div class="kpi save">
-        <span class="label">Ersparnis ggü. Sprit</span>
-        <span class="val" id="k-save">0 €</span>
-        <span class="note" id="k-save-note">noch keine Ladung erfasst</span>
-      </div>
-      <div class="kpi cost">
-        <span class="label">Strom gekostet</span>
-        <span class="val" id="k-cost">0 €</span>
-        <span class="note" id="k-cost-note">–</span>
-      </div>
-      <div class="kpi kwh">
-        <span class="label">Geladen</span>
-        <span class="val" id="k-kwh">0<small>kWh</small></span>
-        <span class="note" id="k-kwh-note">–</span>
-      </div>
-    </div>
-    <div class="minis">
-      <div class="mini"><span class="label">Ø € / kWh</span><span class="v" id="m-avg">–</span></div>
-      <div class="mini"><span class="label">Ø Verbrauch</span><span class="v" id="m-cons">–</span></div>
-      <div class="mini"><span class="label">€ / 100 km</span><span class="v" id="m-per100">–</span></div>
-      <div class="mini"><span class="label">Sprit hätte gekostet</span><span class="v" id="m-fuel">–</span></div>
-    </div>
-    <div class="fun">
-      <div><span class="e">⛽</span><span class="v" id="f-stops">0</span><span class="label">Tankstopps gespart</span></div>
-      <div><span class="e">🛢️</span><span class="v" id="f-liters">0 l</span><span class="label">nicht getankt</span></div>
-      <div><span class="e">📅</span><span class="v" id="f-day">–</span><span class="label">gespart pro Tag</span></div>
-    </div>
-    <div class="spark">
-      <div class="spark-head"><span class="label">Ersparnis kumuliert</span><span class="label" id="spark-range"></span></div>
-      <svg id="spark" viewBox="0 0 800 70" preserveAspectRatio="none" aria-hidden="true"></svg>
-    </div>
-  </section>
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="home" aria-selected="true">Übersicht</button>
+    <button class="tab" role="tab" data-tab="stats" aria-selected="false">Statistik</button>
+    <button class="tab" role="tab" data-tab="list" aria-selected="false">Ladungen</button>
+    <button class="tab" role="tab" data-tab="wrapped" aria-selected="false">Wrapped</button>
+    <button class="tab" role="tab" data-tab="data" aria-selected="false">Daten</button>
+  </nav>
 
-  <!-- Neue Ladung -->
-  <section class="panel" aria-label="Neue Ladung">
-    <div class="panel-head"><h2>Ladung eintragen</h2><span class="label">Schnellwahl</span></div>
-    <div class="favs" id="favs"></div>
-    <form id="form" autocomplete="off">
-      <div class="grid">
-        <div class="field"><label for="f-date">Datum</label><input type="date" id="f-date" required></div>
-        <div class="field"><label for="f-kwh">Geladen kWh</label><input type="number" id="f-kwh" step="0.01" min="0" inputmode="decimal" placeholder="z.B. 32,5" required></div>
-        <div class="field"><label for="f-price">€ / kWh</label><input type="number" id="f-price" step="0.001" min="0" inputmode="decimal" required></div>
-        <div class="field"><label for="f-fuel">Spritpreis € / l</label><input type="number" id="f-fuel" step="0.001" min="0" inputmode="decimal" required></div>
-        <div class="field"><label for="f-odo">Kilometerstand</label><input type="number" id="f-odo" step="1" min="0" inputmode="numeric" placeholder="optional"></div>
-        <div class="field"><label for="f-prov">Anbieter / Ort</label><input type="text" id="f-prov" placeholder="z.B. Supercharger Dresden"></div>
+  <!-- ÜBERSICHT -->
+  <section data-view="home" class="wrap">
+    <div class="card" id="entry-card">
+      <div class="head"><h2 id="entry-title">Ladung eintragen</h2><span class="label" id="entry-mode"></span></div>
+      <div class="quick">
+        <button type="button" class="qbtn home" id="q-home" aria-pressed="false"><span class="e">🏠</span><b>Zuhause</b><small id="q-home-sub">0,30 € / kWh</small></button>
+        <button type="button" class="qbtn ext" id="q-ext" aria-pressed="false"><span class="e">⚡</span><b>Supercharger</b><small>kWh + Betrag</small></button>
       </div>
-      <label class="savefav" id="savefav-wrap"><input type="checkbox" id="f-savefav"> Ort + Preis als Schnellwahl merken</label>
-      <p class="hint" id="f-hint"></p>
-      <div class="preview">
-        <div class="items">
+      <form id="form" autocomplete="off" hidden>
+        <div class="grid">
+          <div class="field"><label for="f-kwh">Geladen kWh</label><input type="number" id="f-kwh" step="0.01" min="0" inputmode="decimal" placeholder="z.B. 32,5"></div>
+          <div class="field" id="w-total"><label for="f-total">Betrag €</label><input type="number" id="f-total" step="0.01" min="0" inputmode="decimal" placeholder="laut App"></div>
+          <div class="field" id="w-price"><label for="f-price">€ / kWh</label><input type="number" id="f-price" step="0.001" min="0" inputmode="decimal"></div>
+          <div class="field"><label for="f-odo">Kilometerstand</label><input type="number" id="f-odo" step="1" min="0" inputmode="numeric" placeholder="für km-Statistik"></div>
+          <div class="field" id="w-date-short"><label for="f-date">Datum</label><input type="date" id="f-date"></div>
+        </div>
+        <details class="more" id="more">
+          <summary>Spritpreis, Ort</summary>
+          <div class="grid">
+            <div class="field"><label for="f-fuel">Spritpreis € / l</label><input type="number" id="f-fuel" step="0.001" min="0" inputmode="decimal"></div>
+            <div class="field"><label for="f-prov">Ort / Anbieter</label><input type="text" id="f-prov" placeholder="z.B. Supercharger Dresden"></div>
+          </div>
+        </details>
+        <p class="hint" id="f-hint"></p>
+        <div class="preview">
           <div><span class="label">Kosten</span><b id="p-cost">–</b></div>
           <div><span class="label">Strecke</span><b id="p-km">–</b></div>
           <div><span class="label">Sprit wäre</span><b id="p-fuel">–</b></div>
           <div><span class="label">Gespart</span><b class="g" id="p-save">–</b></div>
         </div>
+        <div class="row2" id="edit-acts" hidden>
+          <button class="btn ghost" type="button" id="f-cancel">Abbrechen</button>
+          <button class="btn" type="submit" id="f-submit-edit">Änderung speichern</button>
+        </div>
         <button class="btn" type="submit" id="f-submit" disabled>+ Ladung speichern</button>
-      </div>
-    </form>
-  </section>
-
-  <!-- Monate -->
-  <section class="panel" aria-label="Monate">
-    <div class="panel-head"><h2>Monate</h2><span class="label" id="mo-hint"></span></div>
-    <div class="months" id="months"><div class="empty">Ab der ersten Ladung siehst du hier Kosten und Ersparnis pro Monat – und wie der Verbrauch im Winter steigt.</div></div>
-  </section>
-
-  <!-- Liste -->
-  <section class="panel" aria-label="Alle Ladungen">
-    <div class="panel-head">
-      <h2>Ladungen</h2>
-      <span class="label" id="l-count"></span>
+      </form>
     </div>
-    <div class="list" id="list">
-      <div class="empty" id="empty">
-        <b>Noch keine Ladung im Buch.</b>
-        <span>Schnellwahl antippen, kWh eintragen, speichern. Mit Kilometerstand wird die Strecke exakt, ohne schätzt das Buch sie über den Ø-Verbrauch aus den Einstellungen.</span>
+
+    <div class="card" aria-label="Bilanz">
+      <div class="period"><h2>Bilanz</h2><select id="period" aria-label="Zeitraum"><option value="all">Gesamt</option></select></div>
+      <div class="hero">
+        <span class="label">Gespart ggü. Sprit</span>
+        <span class="val" id="k-save">0,00 €</span>
+        <span class="note" id="k-save-note">noch keine Ladung erfasst</span>
+      </div>
+      <div class="kpis">
+        <div class="kpi paid"><span class="label">Gezahlt</span><span class="val" id="k-cost">0,00 €</span><span class="note" id="k-cost-note">–</span></div>
+        <div class="kpi kwh"><span class="label">Geladen</span><span class="val" id="k-kwh">0,0 kWh</span><span class="note" id="k-kwh-note">–</span></div>
+      </div>
+      <div class="minis">
+        <div class="mini"><span class="label">Gefahren</span><span class="v" id="m-km">–</span></div>
+        <div class="mini"><span class="label">Ø Verbrauch</span><span class="v" id="m-cons">–</span></div>
+        <div class="mini"><span class="label">€ / 100 km</span><span class="v" id="m-per100">–</span></div>
+        <div class="mini"><span class="label">Ø € / kWh</span><span class="v" id="m-avg">–</span></div>
+      </div>
+      <div class="spark">
+        <div class="head"><span class="label">Ersparnis kumuliert</span><span class="label" id="spark-range"></span></div>
+        <svg id="spark" viewBox="0 0 800 70" preserveAspectRatio="none" aria-hidden="true"></svg>
       </div>
     </div>
   </section>
 
-  <!-- Einstellungen -->
-  <section class="panel">
-    <details class="settings" id="settings">
-      <summary><h2>Einstellungen</h2><span class="label">Vergleichsbasis</span></summary>
+  <!-- STATISTIK -->
+  <section data-view="stats" class="wrap" hidden>
+    <div class="card">
+      <div class="period"><h2>Zum Spaß</h2><select id="period2" aria-label="Zeitraum"></select></div>
+      <div class="fun">
+        <div><span class="e">⛽</span><span class="v" id="f-stops">0</span><span class="label">Tankstopps gespart</span></div>
+        <div><span class="e">🛢️</span><span class="v" id="f-liters">0 l</span><span class="label">Benzin nicht getankt</span></div>
+        <div><span class="e">🌱</span><span class="v" id="f-co2">0 kg</span><span class="label">CO₂ gespart (Schätzung)</span></div>
+        <div><span class="e">📅</span><span class="v" id="f-day">–</span><span class="label">gespart pro Tag</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Zuhause vs. Unterwegs</h2>
+      <div class="split">
+        <div class="side home"><span class="t">🏠 Zuhause</span><span class="v" id="s-h-kwh">–</span><span class="d" id="s-h-d">–</span></div>
+        <div class="side ext"><span class="t">⚡ Unterwegs</span><span class="v" id="s-e-kwh">–</span><span class="d" id="s-e-d">–</span></div>
+      </div>
+      <div class="bar" aria-hidden="true"><i id="s-bar" style="width:50%"></i></div>
+      <p class="verdict" id="s-verdict">Sobald du zuhause und unterwegs geladen hast, steht hier, was dich das Schnellladen extra kostet.</p>
+    </div>
+
+    <div class="card">
+      <h2>Highlights</h2>
+      <div class="hl" id="hl"><div class="empty">Highlights erscheinen ab der zweiten Ladung mit Kilometerstand.</div></div>
+    </div>
+
+    <div class="card">
+      <div class="head"><h2>Monate</h2><span class="label" id="mo-hint"></span></div>
+      <div class="months" id="months"><div class="empty">Ab der ersten Ladung siehst du hier Kosten und Ersparnis pro Monat – und wie der Verbrauch im Winter steigt.</div></div>
+    </div>
+  </section>
+
+  <!-- LADUNGEN -->
+  <section data-view="list" class="wrap" hidden>
+    <div class="card">
+      <div class="head"><h2>Alle Ladungen</h2><span class="label" id="l-count"></span></div>
+      <div class="list" id="list"><div class="empty" id="empty"><b>Noch keine Ladung im Buch.</b>Auf „Übersicht“ Zuhause oder Supercharger antippen, kWh eintragen, speichern.</div></div>
+    </div>
+  </section>
+
+  <!-- WRAPPED -->
+  <section data-view="wrapped" class="wrap" hidden>
+    <div class="card">
+      <div class="period"><h2>Wrapped</h2><select id="period3" aria-label="Zeitraum"></select></div>
+      <img class="wrapped-img" id="w-img" alt="Wrapped-Karte mit deinen Ladezahlen">
+      <button class="btn green" type="button" id="w-share" disabled>Karte teilen / sichern</button>
+      <p class="hint" id="w-hint">Hochformat für Instagram- oder YouTube-Story. Klappt Teilen nicht: Bild gedrückt halten → „Zu Fotos hinzufügen“.</p>
+    </div>
+  </section>
+
+  <!-- DATEN -->
+  <section data-view="data" class="wrap" hidden>
+    <div class="card">
+      <h2>Einstellungen</h2>
       <div class="grid">
         <div class="field"><label for="s-home">Strom zuhause € / kWh</label><input type="number" id="s-home" step="0.001" min="0"></div>
         <div class="field"><label for="s-fuel">Spritpreis Vorgabe € / l</label><input type="number" id="s-fuel" step="0.001" min="0"></div>
-        <div class="field"><label for="s-octavia">Octavia l / 100 km</label><input type="number" id="s-octavia" step="0.1" min="0"></div>
+        <div class="field"><label for="s-octavia">Vergleich l / 100 km</label><input type="number" id="s-octavia" step="0.1" min="0"></div>
         <div class="field"><label for="s-tesla">Tesla kWh / 100 km</label><input type="number" id="s-tesla" step="0.1" min="0"></div>
         <div class="field"><label for="s-tank">Tankfüllung Liter</label><input type="number" id="s-tank" step="1" min="1"></div>
+        <div class="field"><label for="s-grid">Strommix g CO₂ / kWh</label><input type="number" id="s-grid" step="1" min="0"></div>
         <div class="field"><label for="s-startodo">Start-km bei Übernahme</label><input type="number" id="s-startodo" step="1" min="0"></div>
+        <div class="field"><label for="s-name">Name auf der Karte</label><input type="text" id="s-name"></div>
+        <div class="field wide"><label for="s-footer">Fußzeile der Karte</label><input type="text" id="s-footer"></div>
       </div>
-      <button class="btn ghost" type="button" id="s-save" style="margin-top:12px">Übernehmen</button>
-      <p class="hint">Der Tesla-Verbrauch zählt nur, wenn bei einer Ladung kein Kilometerstand steht. Die Tankfüllung bestimmt die gesparten Tankstopps.</p>
-    </details>
-  </section>
-
-  <!-- Export -->
-  <section class="panel" aria-label="Daten sichern">
-    <div class="panel-head"><h2>Daten sichern</h2><span class="label" id="io-info"></span></div>
-    <div class="io">
-      <button type="button" id="x-csv">📄 CSV exportieren</button>
-      <button type="button" id="x-json">💾 Backup sichern</button>
-      <label for="x-import">↩︎ Backup laden<input type="file" id="x-import" accept=".json,application/json"></label>
+      <button class="btn ghost" type="button" id="s-save">Übernehmen</button>
+      <p class="hint">„Vergleich l/100 km“ ist der Octavia RS (6,9 l real). Der Tesla-Verbrauch zählt nur bei Ladungen ohne Kilometerstand. Mit Kilometerstand rechnet das Buch die echte Strecke seit der vorigen Ladung – inklusive Ladeverlusten, weil du die kWh aus dem Zähler einträgst.</p>
     </div>
-    <p class="hint">Die Daten liegen nur in diesem Browser. Sichere das Backup ab und zu in iCloud – damit ziehst du auch auf ein neues Gerät um. CSV öffnet sich in Numbers oder Excel.</p>
+
+    <div class="card">
+      <div class="head"><h2>Daten sichern</h2><span class="label" id="io-info"></span></div>
+      <div class="io">
+        <button type="button" id="x-csv">📄 CSV</button>
+        <button type="button" id="x-json">💾 Backup</button>
+        <label for="x-import">↩︎ Laden<input type="file" id="x-import" accept=".json,application/json"></label>
+      </div>
+      <p class="hint">Die Daten liegen nur in diesem Browser. Safari löscht Web-App-Daten nach längerer Nichtnutzung – leg einmal im Monat ein Backup in iCloud.</p>
+    </div>
   </section>
 
-  <div class="motivation">
-    Jeder Liter, den du nicht mehr tankst,<br>landet hier als grüne Zahl.<br>
-    <strong>Lad mit. ⚡</strong>
-  </div>
+  <div class="motivation">Jeder Liter, den du nicht mehr tankst,<br>landet hier als grüne Zahl.<br><strong>Lad mit. ⚡</strong></div>
 </div>
 <div class="toast" id="toast" hidden></div>
 
 <script>
 const KEY = "ladebuch-v1";
-const DEFAULTS = { homePrice: 0.30, fuelPrice: 1.85, octavia: 6.9, tesla: 17, tank: 50, startOdo: 0 };
-let state = load();
+const DEFAULTS = { homePrice: 0.30, fuelPrice: 1.85, octavia: 6.9, tesla: 17, tank: 50, grid: 380, startOdo: 0, name: "Model Y Standard", footer: "Tesla Träumer · YouTube" };
+const CO2_PER_L = 2.37; // kg CO₂ je Liter Benzin
 let S, entries, favs;
-let where = "home";
-let activeFav = "home";
+let where = null, editingId = null, period = "all", wrappedBlob = null;
 
 function load() {
   try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && Array.isArray(d.entries)) return d; } catch (e) {}
-  return { settings: { ...DEFAULTS }, entries: [], favs: [] };
+  return { settings: {}, entries: [], favs: [] };
 }
+function sync(d) { S = { ...DEFAULTS, ...(d.settings || {}) }; entries = d.entries || []; favs = d.favs || []; }
 function persist() {
-  state = { settings: S, entries, favs };
-  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { toast("Speichern im Browser fehlgeschlagen"); }
+  try { localStorage.setItem(KEY, JSON.stringify({ settings: S, entries, favs })); } catch (e) { toast("Speichern im Browser fehlgeschlagen"); }
 }
-function sync() { S = { ...DEFAULTS, ...state.settings }; entries = state.entries || []; favs = state.favs || []; }
-sync();
+sync(load());
 
 const $ = id => document.getElementById(id);
 const eur = (v, d = 2) => v.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d }) + " €";
@@ -331,11 +377,18 @@ const n = (v, d = 1) => v.toLocaleString("de-DE", { minimumFractionDigits: d, ma
 const num = el => { const v = parseFloat(String(el.value).replace(",", ".")); return isFinite(v) ? v : null; };
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const today = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
+const dDE = (s, y = "2-digit") => new Date(s + "T12:00:00").toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: y });
 const MON = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
+const MONL = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+const plus = v => (v > 0 ? "+" : "") + eur(v);
 
 function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 2200); }
 
-/* Strecke je Ladung: Kilometerstand-Differenz zur vorigen Ladung (bzw. Start-km), sonst Schätzung über kWh */
+/* ---------- Rechnen ----------
+   Strecke je Ladung = Kilometerstand jetzt − Kilometerstand bei der vorigen Ladung (bzw. Start-km).
+   Ohne Kilometerstand wird über den Tesla-Verbrauch geschätzt. Der Verbrauch je Etappe ist damit
+   „aus der Steckdose“, also inklusive Ladeverluste. */
 function compute(list) {
   const sorted = [...list].sort((a, b) => (a.date + (a.created || "")).localeCompare(b.date + (b.created || "")));
   let lastOdo = S.startOdo > 0 ? S.startOdo : null;
@@ -346,65 +399,62 @@ function compute(list) {
     if (e.odo != null) lastOdo = e.odo;
     const liters = km * S.octavia / 100;
     const cost = e.kwh * e.price;
-    const fuel = liters * e.fuel;
-    return { ...e, km, exact, liters, cost, fuelCost: fuel, save: fuel - cost };
+    const fuelCost = liters * e.fuel;
+    return { ...e, km, exact, liters, cost, fuelCost, save: fuelCost - cost, cons: exact && km > 0 ? e.kwh / km * 100 : null };
   });
 }
-
-function render() {
-  const rows = compute(entries);
-  const t = rows.reduce((a, r) => (a.kwh += r.kwh, a.cost += r.cost, a.fuel += r.fuelCost, a.km += r.km, a.l += r.liters,
-    r.where === "home" ? (a.hk += r.kwh) : (a.ek += r.kwh), a), { kwh: 0, cost: 0, fuel: 0, km: 0, l: 0, hk: 0, ek: 0 });
-  const save = t.fuel - t.cost;
-
-  $("k-save").textContent = (save > 0 ? "+" : "") + eur(save);
-  $("k-save").style.color = save < 0 ? "var(--red)" : "";
-  $("k-save-note").textContent = rows.length ? `${n(t.fuel ? save / t.fuel * 100 : 0, 0)} % günstiger als Benzin` : "noch keine Ladung erfasst";
-  $("k-cost").textContent = eur(t.cost);
-  $("k-cost-note").textContent = rows.length ? `${rows.length} Ladung${rows.length > 1 ? "en" : ""}` : "–";
-  $("k-kwh").innerHTML = `${n(t.kwh, 1)}<small>kWh</small>`;
-  $("k-kwh-note").textContent = t.kwh ? `🏠 ${n(t.hk / t.kwh * 100, 0)} % · 🔌 ${n(t.ek / t.kwh * 100, 0)} %` : "–";
-  $("m-avg").textContent = t.kwh ? n(t.cost / t.kwh, 3) + " €" : "–";
-  $("m-cons").textContent = t.km ? n(t.kwh / t.km * 100, 1) + " kWh" : "–";
-  $("m-per100").textContent = t.km ? eur(t.cost / t.km * 100) : "–";
-  $("m-fuel").textContent = rows.length ? eur(t.fuel) : "–";
-
-  // Spaßzahlen
-  $("f-stops").textContent = n(S.tank > 0 ? t.l / S.tank : 0, 1);
-  $("f-liters").textContent = n(t.l, 1) + " l";
-  if (rows.length) {
-    const days = Math.max(1, Math.round((Date.now() - new Date(rows[0].date + "T00:00:00")) / 864e5));
-    $("f-day").textContent = eur(save / days);
-  } else $("f-day").textContent = "–";
-
-  drawSpark(rows);
-  drawMonths(rows);
-
-  const list = $("list");
-  list.querySelectorAll(".row").forEach(r => r.remove());
-  $("empty").hidden = rows.length > 0;
-  $("l-count").textContent = rows.length ? `${n(t.km, 0)} km erfasst` : "";
-  $("io-info").textContent = rows.length ? `${rows.length} Ladungen im Browser` : "";
-  [...rows].reverse().forEach(r => {
-    const d = new Date(r.date + "T12:00:00");
-    const el = document.createElement("div");
-    el.className = "row " + (r.where === "home" ? "home" : "ext");
-    el.innerHTML = `
-      <div class="date">${d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "2-digit" })} · ${r.where === "home" ? "🏠 Zuhause" : "🔌 Unterwegs"}</div>
-      <div class="what">
-        <div class="t">${esc(r.provider || (r.where === "home" ? "Zuhause" : "Ladesäule"))}</div>
-        <div class="d">${n(r.kwh, 1)} kWh × ${n(r.price, 3)} € · ${r.exact ? "" : "≈ "}${n(r.km, 0)} km · Sprit ${n(r.fuel, 2)} €/l</div>
-      </div>
-      <div class="cost"><div class="c">${eur(r.cost)}</div><div class="s">${r.save > 0 ? "+" : ""}${eur(r.save)}</div></div>
-      <div class="act"><button class="x" type="button" aria-label="Ladung löschen" title="Löschen">✕</button></div>`;
-    const act = el.querySelector(".act");
-    act.querySelector(".x").onclick = () => {
-      act.innerHTML = `<div class="confirm"><button type="button" class="no">Behalten</button><button type="button" class="del">Löschen</button></div>`;
-      act.querySelector(".no").onclick = render;
-      act.querySelector(".del").onclick = () => { entries = entries.filter(e => e.id !== r.id); persist(); render(); preview(); toast("Ladung gelöscht"); };
-    };
-    list.appendChild(el);
+const inPeriod = (r, p) => p === "all" || r.date.startsWith(p);
+function totals(rows) {
+  const t = { n: rows.length, kwh: 0, cost: 0, fuel: 0, km: 0, l: 0, hk: 0, hc: 0, ek: 0, ec: 0, hn: 0, en: 0, xkm: 0, xkwh: 0 };
+  rows.forEach(r => {
+    t.kwh += r.kwh; t.cost += r.cost; t.fuel += r.fuelCost; t.km += r.km; t.l += r.liters;
+    if (r.where === "home") { t.hk += r.kwh; t.hc += r.cost; t.hn++; } else { t.ek += r.kwh; t.ec += r.cost; t.en++; }
+    if (r.exact) { t.xkm += r.km; t.xkwh += r.kwh; }
   });
+  t.save = t.fuel - t.cost;
+  return t;
+}
+
+/* ---------- Tabs ---------- */
+function showTab(name) {
+  document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === name));
+  document.querySelectorAll("[data-view]").forEach(v => v.hidden = v.dataset.view !== name);
+  if (name === "wrapped") drawWrapped();
+  window.scrollTo({ top: 0 });
+}
+document.querySelectorAll(".tab").forEach(b => b.onclick = () => showTab(b.dataset.tab));
+
+/* ---------- Zeitraum ---------- */
+function fillPeriods() {
+  const years = [...new Set(entries.map(e => e.date.slice(0, 4)))].sort().reverse();
+  const html = `<option value="all">Gesamt</option>` + years.map(y => `<option value="${y}">${y}</option>`).join("");
+  ["period", "period2", "period3"].forEach(id => { $(id).innerHTML = html; $(id).value = years.includes(period) ? period : "all"; });
+  if (!years.includes(period)) period = "all";
+}
+["period", "period2", "period3"].forEach(id => $(id).onchange = e => { period = e.target.value; fillPeriods(); render(); if (!$("w-img").closest("[data-view]").hidden) drawWrapped(); });
+
+/* ---------- Übersicht ---------- */
+function render() {
+  const all = compute(entries);
+  const rows = all.filter(r => inPeriod(r, period));
+  const t = totals(rows);
+
+  $("k-save").textContent = rows.length ? plus(t.save) : "0,00 €";
+  $("k-save").style.color = t.save < 0 ? "var(--red)" : "";
+  $("k-save-note").textContent = rows.length ? `${n(t.fuel ? t.save / t.fuel * 100 : 0, 0)} % günstiger als Benzin · Sprit wäre ${eur(t.fuel)}` : "noch keine Ladung erfasst";
+  $("k-cost").textContent = eur(t.cost);
+  $("k-cost-note").textContent = rows.length ? `${t.n} Ladung${t.n > 1 ? "en" : ""}` : "–";
+  $("k-kwh").textContent = n(t.kwh, 1) + " kWh";
+  $("k-kwh-note").textContent = t.kwh ? `🏠 ${n(t.hk / t.kwh * 100, 0)} % · ⚡ ${n(t.ek / t.kwh * 100, 0)} %` : "–";
+  $("m-km").textContent = t.km ? (t.xkm < t.km - 0.5 ? "≈ " : "") + n(t.km, 0) + " km" : "–";
+  $("m-cons").textContent = t.xkm ? n(t.xkwh / t.xkm * 100, 1) + " kWh" : "–";
+  $("m-per100").textContent = t.km ? eur(t.cost / t.km * 100) : "–";
+  $("m-avg").textContent = t.kwh ? n(t.cost / t.kwh, 3) + " €" : "–";
+  drawSpark(rows);
+
+  renderStats(rows, t);
+  renderList(all);
+  $("io-info").textContent = entries.length ? `${entries.length} Ladungen im Browser` : "";
 }
 
 function drawSpark(rows) {
@@ -418,170 +468,380 @@ function drawSpark(rows) {
   const max = Math.max(...pts, 1), min = Math.min(0, ...pts);
   const x = i => i / (pts.length - 1) * 800, y = v => 64 - (v - min) / (max - min) * 56;
   const line = pts.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
-  svg.innerHTML = `
-    <defs><linearGradient id="gf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--green)" stop-opacity=".28"/><stop offset="1" stop-color="var(--green)" stop-opacity="0"/></linearGradient></defs>
+  svg.innerHTML = `<defs><linearGradient id="gf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--green)" stop-opacity=".28"/><stop offset="1" stop-color="var(--green)" stop-opacity="0"/></linearGradient></defs>
     <path d="${line} L800,${y(min)} L0,${y(min)} Z" fill="url(#gf)"/>
     <path d="${line}" fill="none" stroke="var(--green)" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
   const f = d => new Date(d + "T12:00:00").toLocaleDateString("de-DE", { month: "short", year: "2-digit" });
   $("spark-range").textContent = `${f(rows[0].date)} – ${f(rows[rows.length - 1].date)}`;
 }
 
-/* Monate: Balken Stromkosten (rot) und Ersparnis (grün), darunter Tabelle mit Verbrauch */
-function drawMonths(rows) {
-  const box = $("months");
-  if (!rows.length) { $("mo-hint").textContent = ""; return; }
+/* ---------- Statistik ---------- */
+function highlights(rows) {
+  const out = [];
+  if (!rows.length) return out;
+  const by = (arr, f, dir = 1) => arr.reduce((a, b) => (a == null || dir * (f(b) - f(a)) > 0 ? b : a), null);
+  const ex = rows.filter(r => r.exact && r.km >= 15);
+  const where = r => r.provider || (r.where === "home" ? "Zuhause" : "Supercharger");
+  if (ex.length) {
+    const long = by(ex, r => r.km);
+    out.push({ e: "🛣️", t: "Längste Etappe", d: `${dDE(long.date)} · bis zur Ladung bei ${where(long)}`, v: n(long.km, 0) + " km" });
+  }
+  if (ex.length >= 2) {
+    const best = by(ex, r => r.cons, -1), worst = by(ex, r => r.cons);
+    out.push({ e: "🍃", t: "Sparsamste Etappe", d: `${dDE(best.date)} · ${n(best.km, 0)} km`, v: n(best.cons, 1) + " kWh", c: "g" });
+    out.push({ e: "🥶", t: "Durstigste Etappe", d: `${dDE(worst.date)} · ${n(worst.km, 0)} km`, v: n(worst.cons, 1) + " kWh", c: "r" });
+  }
+  const big = by(rows, r => r.kwh);
+  out.push({ e: "🔋", t: "Größte Ladung", d: `${dDE(big.date)} · ${where(big)}`, v: n(big.kwh, 1) + " kWh" });
+  if (rows.length >= 2) {
+    const exp = by(rows, r => r.price), chp = by(rows, r => r.price, -1);
+    if (exp.price !== chp.price) {
+      out.push({ e: "💸", t: "Teuerste Kilowattstunde", d: `${dDE(exp.date)} · ${where(exp)}`, v: n(exp.price, 3) + " €", c: "a" });
+      out.push({ e: "🪙", t: "Günstigste Kilowattstunde", d: `${dDE(chp.date)} · ${where(chp)}`, v: n(chp.price, 3) + " €", c: "b" });
+    }
+    const topSave = by(rows, r => r.save);
+    out.push({ e: "🤑", t: "Meiste Ersparnis auf einen Schlag", d: `${dDE(topSave.date)} · ${n(topSave.km, 0)} km`, v: plus(topSave.save), c: "g" });
+  }
+  const months = monthAgg(rows);
+  if (months.length >= 2) {
+    const rec = by(months, m => m.km);
+    out.push({ e: "🏆", t: "Rekordmonat", d: `${MONL[+rec.k.slice(5) - 1]} ${rec.k.slice(0, 4)} · ${n(rec.kwh, 0)} kWh`, v: n(rec.km, 0) + " km" });
+  }
+  const sc = rows.filter(r => r.where !== "home");
+  if (sc.length >= 2) {
+    const cnt = {}; sc.forEach(r => { const k = where(r); cnt[k] = (cnt[k] || 0) + 1; });
+    const fav = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0];
+    if (fav[1] >= 2) out.push({ e: "📍", t: "Lieblings-Lader unterwegs", d: fav[0], v: fav[1] + "×" });
+  }
+  return out;
+}
+function monthAgg(rows) {
   const map = new Map();
   rows.forEach(r => {
     const k = r.date.slice(0, 7);
-    const m = map.get(k) || { k, cost: 0, save: 0, kwh: 0, km: 0 };
-    m.cost += r.cost; m.save += r.save; m.kwh += r.kwh; m.km += r.km; map.set(k, m);
+    const m = map.get(k) || { k, cost: 0, save: 0, kwh: 0, km: 0, xkm: 0, xkwh: 0 };
+    m.cost += r.cost; m.save += r.save; m.kwh += r.kwh; m.km += r.km;
+    if (r.exact) { m.xkm += r.km; m.xkwh += r.kwh; }
+    map.set(k, m);
   });
-  const ms = [...map.values()].sort((a, b) => a.k.localeCompare(b.k)).slice(-12);
-  const W = Math.max(320, ms.length * 64), H = 170, base = 140, top = 16;
-  const max = Math.max(1, ...ms.map(m => Math.max(m.cost, m.save)));
-  const ticks = niceTicks(max);
-  const scale = v => base - v / ticks[ticks.length - 1] * (base - top);
-  const slot = (W - 40) / ms.length, bw = Math.min(18, slot / 3);
-  let g = ticks.map(v => `<line x1="40" x2="${W}" y1="${scale(v)}" y2="${scale(v)}" stroke="var(--line)" stroke-width="1"/>
-    <text x="34" y="${scale(v) + 3}" text-anchor="end" fill="var(--muted)" font-family="Space Mono, monospace" font-size="9">${v} €</text>`).join("");
-  ms.forEach((m, i) => {
-    const cx = 40 + slot * i + slot / 2;
-    const [yy, mm] = m.k.split("-");
-    g += `<rect x="${cx - bw - 2}" y="${scale(m.cost)}" width="${bw}" height="${base - scale(m.cost)}" rx="2" fill="var(--red)"/>`;
-    const sv = Math.max(0, m.save);
-    g += `<rect x="${cx + 2}" y="${scale(sv)}" width="${bw}" height="${base - scale(sv)}" rx="2" fill="var(--green)"/>`;
-    g += `<text x="${cx}" y="${base + 16}" text-anchor="middle" fill="var(--muted)" font-family="Space Mono, monospace" font-size="10">${MON[+mm - 1]} ${yy.slice(2)}</text>`;
-  });
-  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" style="width:${ms.length > 5 ? W + "px" : "100%"}">${g}</svg>
-    <div class="legend label"><span><i style="background:var(--red)"></i>Stromkosten</span><span><i style="background:var(--green)"></i>Ersparnis</span></div>
-    <table class="mtable"><thead><tr><th>Monat</th><th>kWh</th><th>kWh/100</th><th>Kosten</th><th>Gespart</th></tr></thead><tbody>
-    ${[...ms].reverse().map(m => { const [yy, mm] = m.k.split("-"); return `<tr><td>${MON[+mm - 1]} ${yy}</td><td>${n(m.kwh, 1)}</td><td>${m.km ? n(m.kwh / m.km * 100, 1) : "–"}</td><td>${eur(m.cost)}</td><td class="g">${eur(m.save)}</td></tr>`; }).join("")}
-    </tbody></table>`;
-  $("mo-hint").textContent = ms.length > 1 ? `letzte ${ms.length} Monate` : "";
+  return [...map.values()].sort((a, b) => a.k.localeCompare(b.k));
 }
+
+function renderStats(rows, t) {
+  // Spaßzahlen
+  $("f-stops").textContent = n(S.tank > 0 ? t.l / S.tank : 0, 1);
+  $("f-liters").textContent = n(t.l, 1) + " l";
+  $("f-co2").textContent = n(Math.max(0, t.l * CO2_PER_L - t.kwh * S.grid / 1000), 0) + " kg";
+  if (rows.length) {
+    // Zeitraum: erste Ladung bis heute (bzw. Jahresende bei abgeschlossenen Jahren), mindestens bis zur letzten Ladung
+    let end = period === "all" ? new Date() : new Date(Math.min(Date.now(), new Date(period + "-12-31T23:59:59")));
+    const last = new Date(rows[rows.length - 1].date + "T23:59:59");
+    if (end < last) end = last;
+    const days = Math.max(1, Math.round((end - new Date(rows[0].date + "T00:00:00")) / 864e5));
+    $("f-day").textContent = eur(t.save / days);
+  } else $("f-day").textContent = "–";
+
+  // Zuhause vs Unterwegs
+  $("s-h-kwh").textContent = t.hn ? n(t.hk, 1) + " kWh" : "–";
+  $("s-e-kwh").textContent = t.en ? n(t.ek, 1) + " kWh" : "–";
+  $("s-h-d").textContent = t.hn ? `${t.hn}× · ${eur(t.hc)} · Ø ${n(t.hc / t.hk, 3)} €/kWh` : "noch keine Ladung";
+  $("s-e-d").textContent = t.en ? `${t.en}× · ${eur(t.ec)} · Ø ${n(t.ec / t.ek, 3)} €/kWh` : "noch keine Ladung";
+  $("s-bar").style.width = t.kwh ? (t.hk / t.kwh * 100) + "%" : "50%";
+  if (t.hn && t.en) {
+    const ph = t.hc / t.hk, pe = t.ec / t.ek, extra = t.ec - t.ek * ph;
+    $("s-verdict").innerHTML = `Unterwegs zahlst du <b>${n((pe / ph - 1) * 100, 0)} % mehr</b> pro kWh. Hättest du alles zuhause geladen, wären es <b>${eur(extra)} weniger</b> gewesen.`;
+  } else $("s-verdict").textContent = "Sobald du zuhause und unterwegs geladen hast, steht hier, was dich das Schnellladen extra kostet.";
+
+  // Highlights
+  const hl = highlights(rows);
+  $("hl").innerHTML = hl.length ? hl.map(h => `<div class="hl-item"><span class="e">${h.e}</span><div><div class="t">${h.t}</div><div class="d">${esc(h.d)}</div></div><span class="v ${h.c || ""}">${h.v}</span></div>`).join("")
+    : `<div class="empty">Highlights erscheinen ab der ersten Ladung.</div>`;
+
+  drawMonths(rows);
+}
+
 function niceTicks(max) {
-  const step = [5, 10, 20, 25, 50, 100, 200, 250, 500].find(s => max / s <= 4) || 1000;
-  const out = []; for (let v = 0; v <= max + step * 0.001 || out.length < 2; v += step) out.push(v);
-  if (out[out.length - 1] < max) out.push(out[out.length - 1] + step);
+  const step = [5, 10, 20, 25, 50, 100, 200, 250, 500, 1000].find(s => max / s <= 4) || 2000;
+  const out = [0]; while (out[out.length - 1] < max) out.push(out[out.length - 1] + step);
   return out;
 }
+function drawMonths(rows) {
+  const box = $("months");
+  if (!rows.length) { box.innerHTML = `<div class="empty">Ab der ersten Ladung siehst du hier Kosten und Ersparnis pro Monat – und wie der Verbrauch im Winter steigt.</div>`; $("mo-hint").textContent = ""; return; }
+  const ms = monthAgg(rows).slice(-12);
+  const slotW = 56, W = Math.max(330, 44 + ms.length * slotW), H = 170, base = 140, top = 14;
+  const ticks = niceTicks(Math.max(1, ...ms.map(m => Math.max(m.cost, m.save))));
+  const sy = v => base - v / ticks[ticks.length - 1] * (base - top);
+  const slot = (W - 44) / ms.length, bw = Math.min(16, slot / 3);
+  let g = ticks.map(v => `<line x1="44" x2="${W}" y1="${sy(v)}" y2="${sy(v)}" stroke="var(--line)" stroke-width="1"/><text x="38" y="${sy(v) + 3}" text-anchor="end" fill="var(--muted)" font-family="Space Mono, monospace" font-size="9">${v} €</text>`).join("");
+  ms.forEach((m, i) => {
+    const cx = 44 + slot * i + slot / 2, sv = Math.max(0, m.save);
+    g += `<rect x="${cx - bw - 2}" y="${sy(m.cost)}" width="${bw}" height="${base - sy(m.cost)}" rx="2" fill="var(--red)"/>`;
+    g += `<rect x="${cx + 2}" y="${sy(sv)}" width="${bw}" height="${base - sy(sv)}" rx="2" fill="var(--green)"/>`;
+    g += `<text x="${cx}" y="${base + 16}" text-anchor="middle" fill="var(--muted)" font-family="Space Mono, monospace" font-size="10">${MON[+m.k.slice(5) - 1]} ${m.k.slice(2, 4)}</text>`;
+  });
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" style="width:${W > 520 ? W + "px" : "100%"}">${g}</svg>
+    <div class="legend label"><span><i style="background:var(--red)"></i>Gezahlt</span><span><i style="background:var(--green)"></i>Gespart</span></div>
+    <div class="tablewrap"><table class="mtable"><thead><tr><th>Monat</th><th>km</th><th>kWh</th><th>kWh/100</th><th>Gezahlt</th><th>Gespart</th></tr></thead><tbody>
+    ${[...ms].reverse().map(m => `<tr><td>${MON[+m.k.slice(5) - 1]} ${m.k.slice(0, 4)}</td><td>${n(m.km, 0)}</td><td>${n(m.kwh, 1)}</td><td>${m.xkm ? n(m.xkwh / m.xkm * 100, 1) : "–"}</td><td>${eur(m.cost)}</td><td class="g">${eur(m.save)}</td></tr>`).join("")}
+    </tbody></table></div>`;
+  $("mo-hint").textContent = ms.length > 1 ? `letzte ${ms.length} Monate` : "";
+}
 
-/* Schnellwahl */
-function renderFavs() {
-  const box = $("favs");
-  const items = [{ id: "home", where: "home", name: "Zuhause", price: S.homePrice, fixed: true },
-                 { id: "ext", where: "ext", name: "Unterwegs", price: null, fixed: true }, ...favs];
-  box.innerHTML = "";
-  items.forEach(f => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = `fav ${f.where === "home" ? "home" : "ext"}${activeFav === f.id ? " on" : ""}`;
-    b.innerHTML = `${f.where === "home" ? "🏠" : "🔌"} ${esc(f.name)}${f.price != null ? ` <b>${n(f.price, 2)} €</b>` : ""}${f.fixed ? "" : `<span class="rm" role="button" aria-label="Schnellwahl entfernen" title="Entfernen">✕</span>`}`;
-    b.onclick = ev => {
-      if (ev.target.classList.contains("rm")) { favs = favs.filter(x => x.id !== f.id); if (activeFav === f.id) activeFav = "ext"; persist(); renderFavs(); toast("Schnellwahl entfernt"); return; }
-      applyFav(f);
+/* ---------- Ladungen ---------- */
+function renderList(all) {
+  const list = $("list");
+  list.querySelectorAll(".item").forEach(r => r.remove());
+  $("empty").hidden = all.length > 0;
+  $("l-count").textContent = all.length ? `${all.length} Ladungen` : "";
+  [...all].reverse().forEach(r => {
+    const el = document.createElement("div");
+    el.className = "item " + (r.where === "home" ? "home" : "ext");
+    el.innerHTML = `
+      <div class="date">${dDE(r.date, "numeric")} · ${r.where === "home" ? "🏠 Zuhause" : "⚡ Unterwegs"}${r.odo ? ` · ${r.odo.toLocaleString("de-DE")} km` : ""}</div>
+      <div class="what">
+        <div class="t">${esc(r.provider || (r.where === "home" ? "Zuhause" : "Supercharger"))}</div>
+        <div class="d">${n(r.kwh, 1)} kWh × ${n(r.price, 3)} € · ${r.exact ? "" : "≈ "}${n(r.km, 0)} km${r.cons ? ` · ${n(r.cons, 1)} kWh/100` : ""}</div>
+      </div>
+      <div class="cost"><div class="c">${eur(r.cost)}</div><div class="s">${plus(r.save)}</div></div>
+      <div class="acts"><button type="button" class="ed">Bearbeiten</button><button type="button" class="del">Löschen</button></div>`;
+    el.querySelector(".ed").onclick = () => startEdit(r.id);
+    const del = el.querySelector(".del");
+    del.onclick = () => {
+      if (!del.classList.contains("sure")) { del.classList.add("sure"); del.textContent = "Wirklich löschen?"; setTimeout(() => { del.classList.remove("sure"); del.textContent = "Löschen"; }, 3000); return; }
+      entries = entries.filter(e => e.id !== r.id); persist(); fillPeriods(); render(); toast("Ladung gelöscht");
     };
-    box.appendChild(b);
+    list.appendChild(el);
   });
 }
-function applyFav(f) {
-  activeFav = f.id; where = f.where;
-  $("f-price").value = f.price != null ? f.price : "";
-  $("f-prov").value = f.fixed ? "" : f.name;
-  $("f-prov").placeholder = where === "home" ? "z.B. Schuko Stellplatz" : "z.B. Supercharger Dresden";
-  $("savefav-wrap").hidden = where === "home";
-  $("f-savefav").checked = false;
-  $("f-hint").textContent = where === "home"
-    ? "Zuhause: kWh vom Zähler bzw. Mobile Connector nehmen, nicht aus der Tesla-App – nur so stecken die Ladeverluste an der Schuko-Dose mit drin."
-    : "Unterwegs: kWh und €/kWh von der Abrechnung übernehmen. Blockier- oder Grundgebühren einfach in den €/kWh-Preis einrechnen.";
-  renderFavs(); preview();
-  if (!f.fixed || f.id === "home") $("f-kwh").focus({ preventScroll: true });
-  else $("f-price").focus({ preventScroll: true });
-}
 
-/* Formular */
+/* ---------- Eingabe ---------- */
+function setMode(w, keep = false) {
+  where = w;
+  $("q-home").setAttribute("aria-pressed", w === "home");
+  $("q-ext").setAttribute("aria-pressed", w === "ext");
+  $("form").hidden = !w;
+  if (!w) return;
+  $("w-total").hidden = w === "home";
+  $("w-price").hidden = w !== "home";
+  if (!keep) {
+    $("f-kwh").value = ""; $("f-total").value = ""; $("f-odo").value = ""; $("f-prov").value = "";
+    $("f-price").value = S.homePrice; $("f-fuel").value = S.fuelPrice; $("f-date").value = today();
+  }
+  $("f-prov").placeholder = w === "home" ? "z.B. Stellplatz" : "Supercharger Dresden";
+  $("f-hint").textContent = w === "home"
+    ? "kWh vom Zähler an der Steckdose nehmen, nicht aus der Tesla-App – sonst fehlen die Ladeverluste."
+    : "kWh und Betrag stehen in der Tesla-App unter Laden → Verlauf. Gebühren sind im Betrag schon drin.";
+  preview();
+}
+$("q-home").onclick = () => { if (editingId) cancelEdit(); setMode(where === "home" ? null : "home"); if (where) $("f-kwh").focus(); };
+$("q-ext").onclick = () => { if (editingId) cancelEdit(); setMode(where === "ext" ? null : "ext"); if (where) $("f-kwh").focus(); };
+
 function draft() {
-  const kwh = num($("f-kwh")), price = num($("f-price")), fuel = num($("f-fuel")), odo = num($("f-odo"));
-  if (!$("f-date").value || kwh == null || kwh <= 0 || price == null || fuel == null) return null;
+  const kwh = num($("f-kwh")), fuel = num($("f-fuel")) ?? S.fuelPrice, odo = num($("f-odo"));
+  if (!where || !$("f-date").value || kwh == null || kwh <= 0) return null;
+  let price;
+  if (where === "home") price = num($("f-price"));
+  else { const total = num($("f-total")); price = total != null ? total / kwh : null; }
+  if (price == null || price < 0) return null;
   return { date: $("f-date").value, kwh, price, fuel, odo: odo != null && odo > 0 ? Math.round(odo) : null, where, provider: $("f-prov").value.trim() };
 }
 function preview() {
   const d = draft();
-  $("f-submit").disabled = !d;
+  $("f-submit").disabled = !d; $("f-submit-edit").disabled = !d;
   if (!d) { ["p-cost", "p-km", "p-fuel", "p-save"].forEach(i => $(i).textContent = "–"); return; }
-  const r = compute([...entries, { ...d, created: "~" }]).find(e => e.created === "~");
+  const base = entries.filter(e => e.id !== editingId);
+  const r = compute([...base, { ...d, id: "~", created: editingId ? (entries.find(e => e.id === editingId) || {}).created : "~" }]).find(e => e.id === "~");
   $("p-cost").textContent = eur(r.cost);
   $("p-km").textContent = (r.exact ? "" : "≈ ") + n(r.km, 0) + " km";
   $("p-fuel").textContent = eur(r.fuelCost);
-  $("p-save").textContent = (r.save > 0 ? "+" : "") + eur(r.save);
+  $("p-save").textContent = plus(r.save);
 }
-["f-date", "f-kwh", "f-price", "f-odo", "f-fuel", "f-prov"].forEach(i => $(i).addEventListener("input", preview));
+["f-date", "f-kwh", "f-price", "f-total", "f-odo", "f-fuel", "f-prov"].forEach(i => $(i).addEventListener("input", preview));
 
 $("form").addEventListener("submit", ev => {
   ev.preventDefault();
   const d = draft(); if (!d) return;
-  entries.push({ id: uid(), ...d, created: new Date().toISOString() });
-  if ($("f-savefav").checked && d.where === "ext" && d.provider && !favs.some(f => f.name.toLowerCase() === d.provider.toLowerCase())) {
-    const f = { id: uid(), where: "ext", name: d.provider, price: d.price }; favs.push(f); activeFav = f.id;
+  if (editingId) {
+    entries = entries.map(e => e.id === editingId ? { ...e, ...d } : e);
+    toast("Ladung geändert");
+    cancelEdit();
+  } else {
+    entries.push({ id: uid(), ...d, created: new Date().toISOString() });
+    if (d.where === "home" && d.price !== S.homePrice) S.homePrice = d.price; // neuer Hausstrompreis wird Vorgabe
+    toast(`Gespeichert ⚡ ${plus(compute(entries).find(r => r.id === entries[entries.length - 1].id).save)}`);
+    setMode(null);
   }
-  S.fuelPrice = d.fuel; // letzter Spritpreis wird neue Vorgabe
-  persist();
-  $("f-kwh").value = ""; $("f-odo").value = ""; $("f-savefav").checked = false;
-  fillSettings(); renderFavs(); render(); preview();
-  toast("Ladung gespeichert ⚡");
+  S.fuelPrice = d.fuel;
+  persist(); fillSettings(); fillPeriods(); render();
 });
 
-/* Einstellungen */
+function startEdit(id) {
+  const e = entries.find(x => x.id === id); if (!e) return;
+  editingId = id;
+  showTab("home");
+  setMode(e.where === "home" ? "home" : "ext", true);
+  $("f-date").value = e.date; $("f-kwh").value = e.kwh; $("f-price").value = e.price;
+  $("f-total").value = (e.kwh * e.price).toFixed(2); $("f-odo").value = e.odo ?? ""; $("f-fuel").value = e.fuel; $("f-prov").value = e.provider || "";
+  $("entry-title").textContent = "Ladung bearbeiten";
+  $("edit-acts").hidden = false; $("f-submit").hidden = true;
+  $("more").open = true;
+  preview();
+}
+function cancelEdit() {
+  editingId = null;
+  $("entry-title").textContent = "Ladung eintragen";
+  $("edit-acts").hidden = true; $("f-submit").hidden = false;
+  $("more").open = false;
+  setMode(null);
+}
+$("f-cancel").onclick = cancelEdit;
+
+/* ---------- Einstellungen ---------- */
 function fillSettings() {
-  $("s-home").value = S.homePrice; $("s-fuel").value = S.fuelPrice; $("s-octavia").value = S.octavia;
-  $("s-tesla").value = S.tesla; $("s-tank").value = S.tank; $("s-startodo").value = S.startOdo || "";
-  $("f-fuel").value = S.fuelPrice;
+  $("s-home").value = S.homePrice; $("s-fuel").value = S.fuelPrice; $("s-octavia").value = S.octavia; $("s-tesla").value = S.tesla;
+  $("s-tank").value = S.tank; $("s-grid").value = S.grid; $("s-startodo").value = S.startOdo || ""; $("s-name").value = S.name; $("s-footer").value = S.footer;
+  $("q-home-sub").textContent = n(S.homePrice, 2) + " € / kWh";
 }
 $("s-save").onclick = () => {
   S = {
     homePrice: num($("s-home")) ?? DEFAULTS.homePrice, fuelPrice: num($("s-fuel")) ?? DEFAULTS.fuelPrice,
-    octavia: num($("s-octavia")) ?? DEFAULTS.octavia, tesla: num($("s-tesla")) ?? DEFAULTS.tesla,
-    tank: num($("s-tank")) || DEFAULTS.tank, startOdo: num($("s-startodo")) ?? 0
+    octavia: num($("s-octavia")) ?? DEFAULTS.octavia, tesla: num($("s-tesla")) || DEFAULTS.tesla,
+    tank: num($("s-tank")) || DEFAULTS.tank, grid: num($("s-grid")) ?? DEFAULTS.grid, startOdo: num($("s-startodo")) ?? 0,
+    name: $("s-name").value.trim(), footer: $("s-footer").value.trim()
   };
-  persist(); fillSettings();
-  if (activeFav === "home") $("f-price").value = S.homePrice;
-  renderFavs(); render(); preview(); toast("Einstellungen übernommen");
+  persist(); fillSettings(); render(); toast("Einstellungen übernommen");
 };
 
-/* Export / Backup */
-function download(name, text, type) {
-  const url = URL.createObjectURL(new Blob([text], { type }));
-  const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click();
-  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 500);
+/* ---------- Wrapped-Karte (Canvas 1080×1920) ---------- */
+async function drawWrapped() {
+  try { await renderWrapped(); }
+  catch (e) { $("w-hint").textContent = "Karte konnte nicht erstellt werden: " + (e && e.message || e); }
 }
-const stamp = () => new Date().toISOString().slice(0, 10);
+async function renderWrapped() {
+  // Schriften laden, aber nie länger als 1,5 s darauf warten
+  const fonts = Promise.all(['700 120px "Oswald"', '700 40px "Space Mono"', '400 30px "Space Mono"', '400 40px "Syne"', '700 30px "Syne"'].map(f => document.fonts.load(f).catch(() => null)));
+  await Promise.race([fonts, new Promise(r => setTimeout(r, 1500))]);
+  const rows = compute(entries).filter(r => inPeriod(r, period));
+  const t = totals(rows), hl = highlights(rows);
+  const W = 1080, H = 1920, c = document.createElement("canvas"); c.width = W; c.height = H;
+  const x = c.getContext("2d");
+  const SY = '"Syne", "Helvetica Neue", sans-serif', MO = '"Space Mono", Menlo, monospace', OS = '"Oswald", "Arial Narrow", Impact, sans-serif';
+
+  // Hintergrund mit grünem Schein
+  x.fillStyle = "#0a0a0a"; x.fillRect(0, 0, W, H);
+  let gr = x.createRadialGradient(W * .8, 380, 40, W * .8, 380, 900);
+  gr.addColorStop(0, "rgba(0,230,118,.30)"); gr.addColorStop(1, "rgba(0,230,118,0)");
+  x.fillStyle = gr; x.fillRect(0, 0, W, H);
+  gr = x.createRadialGradient(80, H - 200, 20, 80, H - 200, 700);
+  gr.addColorStop(0, "rgba(227,25,55,.16)"); gr.addColorStop(1, "rgba(227,25,55,0)");
+  x.fillStyle = gr; x.fillRect(0, 0, W, H);
+
+  const L = 90;
+  x.textBaseline = "alphabetic";
+  x.fillStyle = "#E31937"; x.font = `700 30px ${MO}`;
+  x.fillText("⚡ LADEBUCH WRAPPED", L, 170);
+  x.fillStyle = "#888"; x.textAlign = "right"; x.font = `400 30px ${MO}`;
+  x.fillText(S.name || "", W - L, 170); x.textAlign = "left";
+  x.fillStyle = "#f0f0f0"; x.font = `700 130px ${OS}`;
+  x.fillText((period === "all" ? "Gesamt" : period).toUpperCase(), L, 320);
+
+  // Hero: Ersparnis
+  x.fillStyle = "#00e676";
+  fitText(x, rows.length ? (t.save > 0 ? "+" : "") + n(t.save, 0) + " €" : "0 €", L - 4, 600, W - 2 * L, 230, OS);
+  x.fillStyle = "#f0f0f0"; x.font = `400 40px ${SY}`;
+  x.fillText("gespart gegenüber Sprit", L, 670);
+
+  // Kacheln 2×3
+  const tiles = [
+    [t.km ? n(t.km, 0) : "0", "km elektrisch"],
+    [n(t.kwh, 0) + " kWh", "geladen"],
+    [eur(t.cost, 0), "für Strom gezahlt"],
+    [t.xkm ? n(t.xkwh / t.xkm * 100, 1) + " kWh" : "–", "Ø pro 100 km"],
+    [n(S.tank > 0 ? t.l / S.tank : 0, 1), "Tankstopps gespart"],
+    [t.km ? eur(t.cost / t.km * 100) : "–", "pro 100 km"]
+  ];
+  const tw = (W - 2 * L - 30) / 2, th = 190;
+  tiles.forEach((tl, i) => {
+    const tx = L + (i % 2) * (tw + 30), ty = 760 + Math.floor(i / 2) * (th + 30);
+    x.fillStyle = "rgba(255,255,255,.06)"; roundRect(x, tx, ty, tw, th, 28); x.fill();
+    x.fillStyle = "#f0f0f0"; x.font = `700 64px ${MO}`; fitText(x, tl[0], tx + 36, ty + 100, tw - 72, 64, MO);
+    x.fillStyle = "#999"; x.font = `400 32px ${SY}`; x.fillText(tl[1], tx + 36, ty + 152);
+  });
+
+  // Highlights
+  let hy = 1500;
+  const pick = ["Längste Etappe", "Sparsamste Etappe", "Durstigste Etappe", "Rekordmonat"];
+  const lines = pick.map(p => hl.find(h => h.t === p)).filter(Boolean).slice(0, 3);
+  if (t.kwh) lines.push({ t: "Zuhause geladen", v: n(t.hk / t.kwh * 100, 0) + " %" });
+  x.font = `400 34px ${MO}`;
+  lines.slice(0, 4).forEach(h => {
+    x.fillStyle = "#64b4ff"; x.fillText(h.t, L, hy);
+    x.textAlign = "right"; x.fillStyle = "#f0f0f0"; x.font = `700 34px ${MO}`; x.fillText(h.v, W - L, hy);
+    x.textAlign = "left"; x.font = `400 34px ${MO}`; hy += 62;
+  });
+
+  // Fuß
+  x.fillStyle = "#222"; x.fillRect(L, H - 150, W - 2 * L, 2);
+  x.fillStyle = "#00e676"; x.font = `700 30px ${SY}`; x.fillText(S.footer || "", L, H - 92);
+  x.fillStyle = "#666"; x.textAlign = "right"; x.font = `400 26px ${MO}`;
+  x.fillText(rows.length ? `${rows.length} Ladungen` : "", W - L, H - 92); x.textAlign = "left";
+
+  // Data-URL fürs Bild (lässt sich auf dem iPhone per Gedrückthalten sichern), Blob fürs Teilen
+  const url = c.toDataURL("image/png");
+  $("w-img").src = url;
+  wrappedBlob = await (await fetch(url)).blob();
+  $("w-share").disabled = false;
+}
+function roundRect(x, a, b, w, h, r) { x.beginPath(); x.moveTo(a + r, b); x.arcTo(a + w, b, a + w, b + h, r); x.arcTo(a + w, b + h, a, b + h, r); x.arcTo(a, b + h, a, b, r); x.arcTo(a, b, a + w, b, r); x.closePath(); }
+function fitText(x, s, px, py, maxW, size, fam) { let f = size; x.font = `700 ${f}px ${fam}`; while (x.measureText(s).width > maxW && f > 24) { f -= 2; x.font = `700 ${f}px ${fam}`; } x.fillText(s, px, py); }
+
+$("w-share").onclick = async () => {
+  if (!wrappedBlob) return;
+  const name = `ladebuch-wrapped-${period}.png`;
+  let file = null;
+  try { file = new File([wrappedBlob], name, { type: "image/png" }); } catch (e) {}
+  if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); return; }
+    catch (e) { if (e.name === "AbortError") return; }
+  }
+  const touch = matchMedia("(pointer: coarse)").matches;
+  if (touch) { $("w-hint").textContent = "Teilen geht hier nicht – halte das Bild gedrückt und wähle „Zu Fotos hinzufügen“."; toast("Bild gedrückt halten zum Sichern"); }
+  else download(name, wrappedBlob);
+};
+
+/* ---------- Export / Backup ---------- */
+function download(name, blob) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 800);
+}
+const stamp = () => today();
 $("x-csv").onclick = () => {
   if (!entries.length) return toast("Noch keine Ladungen zum Exportieren");
   const f = v => String(v).replace(".", ",");
-  const head = "Datum;Ort;Anbieter;kWh;EUR/kWh;Kosten EUR;km;km exakt;Spritpreis EUR/l;Sprit waere EUR;Ersparnis EUR;Kilometerstand";
+  const head = "Datum;Ort;Anbieter;kWh;EUR/kWh;Kosten EUR;km;km exakt;kWh/100km;Spritpreis EUR/l;Sprit waere EUR;Ersparnis EUR;Kilometerstand";
   const lines = compute(entries).map(r => [r.date, r.where === "home" ? "Zuhause" : "Unterwegs", `"${(r.provider || "").replace(/"/g, '""')}"`,
-    f(r.kwh), f(r.price), f(r.cost.toFixed(2)), f(r.km.toFixed(0)), r.exact ? "ja" : "nein", f(r.fuel), f(r.fuelCost.toFixed(2)), f(r.save.toFixed(2)), r.odo ?? ""].join(";"));
-  download(`ladebuch-${stamp()}.csv`, "﻿" + [head, ...lines].join("\n"), "text/csv;charset=utf-8");
+    f(r.kwh), f(r.price.toFixed(4)), f(r.cost.toFixed(2)), f(r.km.toFixed(0)), r.exact ? "ja" : "nein", r.cons ? f(r.cons.toFixed(1)) : "",
+    f(r.fuel), f(r.fuelCost.toFixed(2)), f(r.save.toFixed(2)), r.odo ?? ""].join(";"));
+  download(`ladebuch-${stamp()}.csv`, new Blob(["﻿" + [head, ...lines].join("\n")], { type: "text/csv;charset=utf-8" }));
 };
-$("x-json").onclick = () => download(`ladebuch-backup-${stamp()}.json`, JSON.stringify({ app: "ladebuch", version: 1, ...state }, null, 2), "application/json");
+$("x-json").onclick = () => download(`ladebuch-backup-${stamp()}.json`, new Blob([JSON.stringify({ app: "ladebuch", version: 2, settings: S, entries, favs }, null, 2)], { type: "application/json" }));
 $("x-import").onchange = async ev => {
   const file = ev.target.files[0]; ev.target.value = ""; if (!file) return;
   try {
     const d = JSON.parse(await file.text());
     if (!d || !Array.isArray(d.entries)) throw new Error();
-    state = { settings: { ...DEFAULTS, ...d.settings }, entries: d.entries, favs: d.favs || [] };
-    sync(); persist(); fillSettings(); applyFav({ id: "home", where: "home", price: S.homePrice, fixed: true }); render();
+    sync(d); persist(); fillSettings(); fillPeriods(); render();
     toast(`${entries.length} Ladungen geladen`);
   } catch (e) { toast("Datei ist kein Ladebuch-Backup"); }
 };
 
-/* Start – ?ort=zuhause / ?ort=unterwegs öffnet direkt die passende Schnellwahl (für Homescreen-Kurzbefehle) */
-$("f-date").value = new Date().toISOString().slice(0, 10);
-fillSettings(); render();
+/* ---------- Start ----------
+   ?ort=zuhause oder ?ort=unterwegs öffnet direkt die passende Eingabe (für Homescreen-Lesezeichen) */
+fillSettings(); fillPeriods(); render();
 const ort = new URLSearchParams(location.search).get("ort");
-applyFav(ort === "unterwegs" ? { id: "ext", where: "ext", price: null, fixed: true } : { id: "home", where: "home", price: S.homePrice, fixed: true });
-if (!ort) $("f-kwh").blur();
+if (ort === "zuhause") setMode("home"); else if (ort === "unterwegs" || ort === "supercharger") setMode("ext");
 </script>
-
 </body>
 </html>
